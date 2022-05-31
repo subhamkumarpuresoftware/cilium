@@ -20,7 +20,7 @@ on:
   #   will disappear from the PR checks: please provide a direct link to the
   #   successful workflow run (can be found from Actions tab) in a comment.
   # 
-  # pull_request: {}
+  pull_request: {}
   ###
 
 # By specifying the access of one of the scopes, all of those that are not
@@ -180,13 +180,19 @@ jobs:
           state: pending
           target_url: ${{ env.check_url }}
 
-      - name: Install Cilium CLI
+      - name: Checkout Cilium CLI AKS BYOCNI WIP branch
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        with:
+          repository: cilium/cilium-cli
+          ref: pr/aks-byoc
+          persist-credentials: false
+
+      - name: Setup Go for building Cilium CLI
+        uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923
+
+      - name: Build Cilium CLI
         run: |
-          curl -sSL --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${{ env.cilium_cli_version }}/cilium-linux-amd64.tar.gz{,.sha256sum}
-          sha256sum --check cilium-linux-amd64.tar.gz.sha256sum
-          sudo tar xzvfC cilium-linux-amd64.tar.gz /usr/local/bin
-          rm cilium-linux-amd64.tar.gz{,.sha256sum}
-          cilium version
+          BINDIR=~/.local/bin make install
 
       - name: Login to Azure
         uses: azure/login@ec3c14589bd3e9312b3cc8c41e6860e258df9010
